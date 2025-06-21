@@ -1,70 +1,63 @@
-﻿// The code in this class aims to help you test the data structures & algorithms implemented for Task 1
-//It requires no further modification from your end.
-using Task_1___Searching_and_Sorting_Algorithms;
+﻿//Use the code in this class to prove that the SplitMix64 PRNG implemented is 
+//indeed correct and intractaable as described in Task 2 of the Assignment Brief
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
-#pragma warning disable CS7022 // The entry point of the program is global code; ignoring entry point
-internal class Program
+namespace DSA___A2___Part_Soution
 {
-    private static void Main(string[] args)
+    internal class Program
     {
-            OrderManager orderManager = new OrderManager();
+        static void Main(string[] args)
+        {
+            
+            SplitMix64 prng = new SplitMix64();
 
-            int choice = 0;
+            Console.WriteLine("=== PRNG Correctness Check ===");
 
-            do
+            List<ulong> randomNumbers = new List<ulong>();
+
+            for (int i = 0; i < 100; i++)
             {
-                //Console.Clear();
-                Console.Write("Choose an Option: \n1.View Orders\n2.Search Orders\n3.View Most Urgent Orders\n4.Exit\nChoice :");
-                choice = Convert.ToInt32(Console.ReadLine());
+                ulong num = prng.Next(1, 1000);
+                randomNumbers.Add(num);
+            }
 
-                switch (choice)
+
+            bool allInRange = randomNumbers.All(n => n >= 1 && n <= 1000);
+            Console.WriteLine("All numbers in range 1-1000: " + allInRange);
+
+            bool isAscending = randomNumbers.SequenceEqual(randomNumbers.OrderBy(n => n));
+            Console.WriteLine("Numbers NOT sorted in ascending order: " + !isAscending);
+
+
+            bool isDescending = randomNumbers.SequenceEqual(randomNumbers.OrderByDescending(n => n));
+            Console.WriteLine("Numbers NOT sorted in descending order: " + !isDescending);
+
+            Console.WriteLine();
+
+            Console.WriteLine("=== PRNG Intractability Check ===");
+
+            ulong[] sizes = { 1000, 10000, 100000, 1000000 };
+
+            foreach (ulong size in sizes)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+
+                for (ulong i = 0; i < size; i++)
                 {
-                    case 1:
-                        {
-                            Console.Write("\n\nSelect an Option:\n 1.View Orders sorted by ID\n2. View Orders sorted by Placed on Date\n3. Vew Orders sorted by Delivery Date\nChoice: ");
-                            int sortChoice = Convert.ToInt32(Console.ReadLine());
-                            List<Order> sortedOrders = orderManager.SortOrders(sortChoice);
-                            Console.WriteLine("\n\n");
-                            foreach (Order order in sortedOrders)
-                            {
-                                Console.WriteLine(order.ToString());
-                            }
-
-                    }
-                    break;
-                    case 2:
-                        {
-                            Console.Write("\n\nEnter Order ID : ");
-                            string orderID = Console.ReadLine();
-                            Order order = orderManager.GetOrderByID(orderID);
-                            if (order != null)
-                            {
-                                Console.WriteLine(order.ToString());
-                            }
-                            else
-                            {
-                                Console.WriteLine($"No Order Found Matching ID : {orderID}");
-                            }
-                        }
-                        break;
-                    case 3:
-                    {
-                        Console.WriteLine("\n\nListing 5 most urgent orders");
-                        List<Order> urgentOrders = orderManager.GetMosturgentOrders();
-                        foreach (Order order in urgentOrders)
-                        {
-                            Console.WriteLine(order.ToString());
-                        }
-                    }break;
-                case 4:
-                    {
-                        Console.WriteLine("\n\nExiting...");
-                    }
-                    break;
-                    default:
-                        Console.WriteLine("\n\nInvalid Option Selected. Press Any Key...");break;
+                    prng.Next(1, 1000);
                 }
-            } while (choice != 4);
+
+                sw.Stop();
+                Console.WriteLine($"Generated {size} numbers in {sw.ElapsedMilliseconds} ms");
+            }
+
+            Console.WriteLine("\nPress any key to exit...");
+            Console.ReadKey();
         }
     }
+}
